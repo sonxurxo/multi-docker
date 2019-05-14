@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sonxurxo/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run sonxurxo/react-test npm test -- --watchAll=false
+
+after_success:
+  - docker build -t sonxurxo/multi-client ./client
+  - docker build -t sonxurxo/multi-nginx ./nginx
+  - docker build -t sonxurxo/multi-server ./server
+  - docker build -t sonxurxo/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # Take those images and push them to docker hub
+  - docker push sonxurxo/multi-client
+  - docker push sonxurxo/multi-nginx
+  - docker push sonxurxo/multi-server
+  - docker push sonxurxo/multi-worker
